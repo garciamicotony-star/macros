@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de macros</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#33453A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Macros">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600&family=Space+Mono&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F1E7;
+    --surface:#FFFDF8;
+    --surface-2:#EFE9DA;
+    --ink:#25221C;
+    --muted:#8B8578;
+    --line:#DDD5C3;
+    --carbs:#C6862E;
+    --carbs-bg:#F5E4C5;
+    --fat:#5F7A52;
+    --fat-bg:#DFE7D6;
+    --protein:#B14A3B;
+    --protein-bg:#F3DAD4;
+    --kcal:#33453A;
+    --kcal-bg:#DEE4E0;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:24px 20px 80px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:26px;
+    letter-spacing:-0.01em;
+    margin:0 0 4px;
+  }
+  h2.page-title{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:22px;
+    letter-spacing:-0.01em;
+    margin:0 0 4px;
+  }
+  .subtitle{
+    color:var(--muted);
+    font-size:13px;
+    margin:0 0 24px;
+  }
+
+  .toptabs{
+    display:flex;
+    gap:4px;
+    border-bottom:1px solid var(--line);
+    padding:0 0 0 4px;
+    margin-bottom:0;
+  }
+  .tab-btn{
+    border:1px solid var(--line);
+    border-bottom:none;
+    background:var(--surface-2);
+    color:var(--muted);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    padding:10px 16px;
+    border-radius:10px 10px 0 0;
+    cursor:pointer;
+    position:relative;
+    top:1px;
+  }
+  .tab-btn:hover{ color:var(--ink); }
+  .tab-btn.active{
+    background:var(--surface);
+    color:var(--ink);
+    top:0;
+    z-index:2;
+  }
+  .tab-btn.active[data-tab="carbs"]{ color:var(--carbs); }
+  .tab-btn.active[data-tab="fat"]{ color:var(--fat); }
+  .tab-btn.active[data-tab="protein"]{ color:var(--protein); }
+  .tab-page{
+    display:none;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-top:none;
+    border-radius:0 0 12px 12px;
+    padding:20px;
+  }
+  .tab-page.active{ display:block; }
+
+  .datebar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:10px 14px;
+    margin-bottom:20px;
+  }
+  .datebar button{
+    background:none;
+    border:none;
+    font-size:18px;
+    color:var(--ink);
+    cursor:pointer;
+    padding:4px 10px;
+    border-radius:8px;
+  }
+  .datebar button:hover{ background:var(--surface-2); }
+  .datebar .datelabel{
+    font-family:'Fraunces', serif;
+    font-size:16px;
+    font-weight:500;
+    text-transform:capitalize;
+    text-align:center;
+    flex:1;
+  }
+  .datebar .datelabel span{
+    display:block;
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    color:var(--muted);
+    font-weight:400;
+    margin-top:1px;
+  }
+  .hero{
+    display:flex;
+    align-items:center;
+    gap:24px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    margin-bottom:18px;
+  }
+  .dial-wrap{ flex-shrink:0; }
+  .hero-num{
+    font-family:'Space Mono', monospace;
+    font-size:34px;
+    line-height:1;
+  }
+  .hero-label{
+    font-size:12px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    margin-top:4px;
+  }
+  .hero-remain{
+    font-size:13px;
+    color:var(--muted);
+    margin-top:8px;
+  }
+  .hero-remain b{ color:var(--kcal); font-weight:600; }
+  .macros-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .macro-card{
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px 14px 12px;
+  }
+  .macro-card .name{
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    color:var(--muted);
+    margin-bottom:6px;
+  }
+  .macro-card .nums{
+    font-family:'Space Mono', monospace;
+    font-size:17px;
+    margin-bottom:8px;
+  }
+  .macro-card .nums small{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    color:var(--muted);
+  }
+  .track{
+    height:6px;
+    border-radius:4px;
+    background:var(--surface-2);
+    overflow:hidden;
+  }
+  .track > div{ height:100%; border-radius:4px; transition:width .3s ease; }
+  .carbs .track > div{ background:var(--carbs); }
+  .fat .track > div{ background:var(--fat); }
+  .protein .track > div{ background:var(--protein); }
+
+  .section-title{
+    font-family:'Fraunces', serif;
+    font-size:15px;
+    font-weight:500;
+    margin:0 0 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .section-title .count{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    color:var(--muted);
+    font-weight:400;
+  }
+
+  form.addform{
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:14px;
+    margin-bottom:20px;
+  }
+  .addform .row1{
+    margin-bottom:8px;
+  }
+  .addform input[type=text]{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:9px 10px;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .addform input[type=text]:focus{ outline:2px solid var(--kcal); outline-offset:-1px; }
+  .addform .row2{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .addform .field label{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--muted);
+    margin-bottom:3px;
+  }
+  .addform .field input{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 8px;
+    font-size:13px;
+    font-family:'Space Mono', monospace;
+    background:var(--surface);
+    color:var(--ink);
+  }
+  .addform .field input:focus{ outline:2px solid var(--kcal); outline-offset:-1px; }
+  .addform button.submit{
+    width:100%;
+    border:none;
+    background:var(--kcal);
+    color:var(--surface);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:500;
+    padding:10px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .addform button.submit:hover{ opacity:.9; }
+
+  .entry{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:12px 14px;
+    margin-bottom:8px;
+  }
+  .entry.done{ background:var(--surface-2); }
+  .check{
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    border:1.5px solid var(--muted);
+    flex-shrink:0;
+    margin-top:1px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--surface);
+    font-size:13px;
+    color:transparent;
+  }
+  .check.on{
+    background:var(--kcal);
+    border-color:var(--kcal);
+    color:var(--surface);
+  }
+  .entry-body{ flex:1; min-width:0; }
+  .entry-name{
+    font-size:14px;
+    font-weight:500;
+    margin-bottom:3px;
+  }
+  .entry.done .entry-name{ color:var(--muted); text-decoration:line-through; }
+  .entry-macros{
+    font-family:'Space Mono', monospace;
+    font-size:11.5px;
+    color:var(--muted);
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .entry-macros b{ color:var(--ink); font-weight:600; }
+  .del{
+    background:none;
+    border:none;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:15px;
+    padding:2px 4px;
+    flex-shrink:0;
+  }
+  .del:hover{ color:var(--protein); }
+  .empty{
+    text-align:center;
+    color:var(--muted);
+    font-size:13px;
+    padding:26px 10px;
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+  }
+  .food-hint{
+    font-size:11.5px;
+    color:var(--muted);
+    margin:0 0 12px;
+  }
+  .food-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:var(--bg);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px;
+    margin-bottom:7px;
+  }
+  .food-row .food-name{
+    flex:1;
+    font-size:13.5px;
+    font-weight:500;
+  }
+  .food-row .food-macros{
+    font-family:'Space Mono', monospace;
+    font-size:11px;
+    color:var(--muted);
+    text-align:right;
+    line-height:1.5;
+  }
+  .food-row .food-macros b{ color:var(--ink); font-weight:600; }
+  .food-tipo{
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:1px;
+  }
+  .badge{
+    flex-shrink:0;
+    font-size:10.5px;
+    font-weight:500;
+    padding:4px 9px;
+    border-radius:20px;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+    white-space:nowrap;
+  }
+  .badge.carbs{ background:var(--carbs-bg); color:var(--carbs); }
+  .badge.fat{ background:var(--fat-bg); color:var(--fat); }
+  .badge.protein{ background:var(--protein-bg); color:var(--protein); }
+  .food-row .use-btn{
+    flex-shrink:0;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    font-size:12px;
+    font-weight:500;
+    padding:7px 10px;
+    border-radius:8px;
+    cursor:pointer;
+  }
+  .food-row .use-btn:hover{ background:var(--surface-2); }
+  .food-row .use-btn:disabled{ color:var(--muted); cursor:default; }
+  .food-row .use-btn:disabled:hover{ background:var(--surface); }
+  @media (max-width:480px){
+    #listSpain .food-row{ flex-wrap:wrap; }
+    #listSpain .food-macros{ order:3; text-align:left; }
+  }
+  .footer-note{
+    text-align:center;
+    font-size:11.5px;
+    color:var(--muted);
+    margin-top:24px;
+  }
+  .backup-bar{
+    display:flex;
+    gap:8px;
+    margin-top:26px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+  }
+  .backup-btn{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:6px;
+    border:1px solid var(--line);
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    font-weight:500;
+    padding:10px;
+    border-radius:10px;
+    cursor:pointer;
+  }
+  .backup-btn:hover{ background:var(--surface-2); }
+  .backup-hint{
+    font-size:11px;
+    color:var(--muted);
+    text-align:center;
+    margin:8px 0 0;
+  }
+  @media (max-width:420px){
+    .macros-grid{ grid-template-columns:1fr 1fr; }
+    .macros-grid .macro-card:last-child{ grid-column:1 / -1; }
+    .hero{ flex-direction:column; align-items:flex-start; }
+    .tab-btn{ padding:9px 10px; font-size:12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="toptabs" id="topTabs">
+    <button class="tab-btn active" data-tab="tracker">Registro de macros</button>
+    <button class="tab-btn" data-tab="carbs">Carbohidratos</button>
+    <button class="tab-btn" data-tab="fat">Grasas</button>
+    <button class="tab-btn" data-tab="protein">Proteina</button>
+    <button class="tab-btn" data-tab="spain">Mas consumidos en Espana</button>
+  </div>
+
+  <div class="tab-page active" data-page="tracker" id="pageTracker">
+    <h1>Registro de macros</h1>
+    <p class="subtitle">Marca cada comida a medida que la vayas completando.</p>
+
+    <div class="datebar">
+      <button id="prevDay" aria-label="Dia anterior">‹</button>
+      <div class="datelabel" id="dateLabel">
+        Hoy
+        <span id="dateSub">-</span>
+      </div>
+      <button id="nextDay" aria-label="Dia siguiente">›</button>
+    </div>
+
+    <div class="hero">
+      <div class="dial-wrap">
+        <svg id="kcalDial" width="108" height="108" viewBox="0 0 108 108"></svg>
+      </div>
+      <div>
+        <div class="hero-num"><span id="kcalDone">0</span> <small style="font-size:15px;color:var(--muted);">/ <span id="kcalGoal">2000</span> kcal</small></div>
+        <div class="hero-label">Calorias consumidas (comidas marcadas)</div>
+        <div class="hero-remain">Quedan <b id="kcalRemain">2000</b> kcal para hoy</div>
+      </div>
+    </div>
+
+    <div class="macros-grid">
+      <div class="macro-card carbs">
+        <div class="name">Carbohidratos</div>
+        <div class="nums"><span id="carbsDone">0</span><small> / <span id="carbsGoal">200</span> g</small></div>
+        <div class="track"><div id="carbsBar" style="width:0%"></div></div>
+      </div>
+      <div class="macro-card fat">
+        <div class="name">Grasas</div>
+        <div class="nums"><span id="fatDone">0</span><small> / <span id="fatGoal">58</span> g</small></div>
+        <div class="track"><div id="fatBar" style="width:0%"></div></div>
+      </div>
+      <div class="macro-card protein">
+        <div class="name">Proteina</div>
+        <div class="nums"><span id="proteinDone">0</span><small> / <span id="proteinGoal">140</span> g</small></div>
+        <div class="track"><div id="proteinBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div class="section-title">Anadir comida</div>
+    <form class="addform" id="addForm">
+      <div class="row1">
+        <input type="text" id="fName" placeholder="Nombre (ej. Pechuga de pollo con arroz)" required>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="fKcal">Kcal</label><input type="number" id="fKcal" min="0" step="1" inputmode="numeric" required></div>
+        <div class="field"><label for="fCarbs">Carbs (g)</label><input type="number" id="fCarbs" min="0" step="0.1" inputmode="decimal" required></div>
+        <div class="field"><label for="fFat">Grasas (g)</label><input type="number" id="fFat" min="0" step="0.1" inputmode="decimal" required></div>
+        <div class="field"><label for="fProtein">Proteina (g)</label><input type="number" id="fProtein" min="0" step="0.1" inputmode="decimal" required></div>
+      </div>
+      <button type="submit" class="submit">Anadir a la lista de hoy</button>
+    </form>
+
+    <div class="section-title">Comidas de hoy <span class="count" id="entryCount"></span></div>
+    <div id="entryList"></div>
+
+    <p class="footer-note" id="statusNote"></p>
+
+    <div class="backup-bar">
+      <button type="button" class="backup-btn" id="exportBtn">Exportar backup</button>
+      <button type="button" class="backup-btn" id="importBtn">Importar backup</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+    </div>
+    <p class="backup-hint">Guarda un archivo .json con todos tus dias registrados y tus alimentos anadidos, o restauralo en otro navegador o dispositivo.</p>
+  </div>
+
+  <div class="tab-page" data-page="carbs" id="pageCarbs">
+    <h2 class="page-title">Principales fuentes de carbohidratos</h2>
+    <p class="food-hint">Valores por 100 g. Pulsa "usar" para rellenar el formulario del registro con esta cantidad.</p>
+    <div id="listCarbs"></div>
+  </div>
+
+  <div class="tab-page" data-page="fat" id="pageFat">
+    <h2 class="page-title">Principales fuentes de grasas</h2>
+    <p class="food-hint">Valores por 100 g. Pulsa "usar" para rellenar el formulario del registro con esta cantidad.</p>
+    <div id="listFat"></div>
+  </div>
+
+  <div class="tab-page" data-page="protein" id="pageProtein">
+    <h2 class="page-title">Principales fuentes de proteina</h2>
+    <p class="food-hint">Valores por 100 g. Pulsa "usar" para rellenar el formulario del registro con esta cantidad.</p>
+    <div id="listProtein"></div>
+  </div>
+
+  <div class="tab-page" data-page="spain" id="pageSpain">
+    <h2 class="page-title">Alimentos mas consumidos en Espana</h2>
+    <p class="food-hint">Alimentos habituales en la dieta espanola, con sus macros por 100 g y su fuente principal. Pulsa "anadir" para incluirlo en la pestana de carbohidratos, grasas o proteina que le corresponda.</p>
+    <div id="listSpain"></div>
+  </div>
+
+</div>
+
+<script>
+const GOALS = { kcal: 2000, carbs: 200, fat: 58, protein: 140 };
+
+function fmtDate(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+function isoToLabel(iso){
+  const [y,m,d] = iso.split('-').map(Number);
+  const dt = new Date(y, m-1, d);
+  const today = new Date(); today.setHours(0,0,0,0);
+  const cmp = new Date(y,m-1,d); cmp.setHours(0,0,0,0);
+  const diff = Math.round((cmp - today) / 86400000);
+  if(diff===0) return {main:'Hoy', sub: dt.toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'})};
+  if(diff===-1) return {main:'Ayer', sub: dt.toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'})};
+  if(diff===1) return {main:'Manana', sub: dt.toLocaleDateString('es-ES',{weekday:'long', day:'numeric', month:'long'})};
+  return {main: dt.toLocaleDateString('es-ES',{weekday:'long'}), sub: dt.toLocaleDateString('es-ES',{day:'numeric', month:'long', year:'numeric'})};
+}
+
+let currentDate = new Date();
+let entries = [];
+let saveTimer = null;
+
+function storageKey(iso){ return `day:${iso}`; }
+
+async function loadDay(iso){
+  try{
+    const res = await window.storage.get(storageKey(iso), false);
+    entries = res && res.value ? JSON.parse(res.value) : [];
+  }catch(e){
+    entries = [];
+  }
+  render();
+}
+
+async function persist(){
+  const iso = fmtDate(currentDate);
+  try{
+    const res = await window.storage.set(storageKey(iso), JSON.stringify(entries), false);
+    const note = document.getElementById('statusNote');
+    note.textContent = res ? 'Guardado' : 'No se pudo guardar. Los cambios pueden perderse.';
+    if(res){
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(()=>{ note.textContent=''; }, 1500);
+    }
+  }catch(e){
+    document.getElementById('statusNote').textContent = 'Error al guardar.';
+  }
+}
+
+function round1(n){ return Math.round(n*10)/10; }
+
+function totals(){
+  return entries.filter(e=>e.checked).reduce((acc,e)=>{
+    acc.kcal += Number(e.kcal)||0;
+    acc.carbs += Number(e.carbs)||0;
+    acc.fat += Number(e.fat)||0;
+    acc.protein += Number(e.protein)||0;
+    return acc;
+  }, {kcal:0, carbs:0, fat:0, protein:0});
+}
+
+function drawDial(pct){
+  const svg = document.getElementById('kcalDial');
+  const cx=54, cy=54, r=42;
+  const clamped = Math.max(0, Math.min(1, pct));
+  let ticks = '';
+  const total = 40;
+  for(let i=0;i<total;i++){
+    const a = (i/total) * Math.PI*2 - Math.PI/2;
+    const active = i < Math.round(total*clamped);
+    const inner = active ? r-8 : r-5;
+    const x1 = cx + Math.cos(a)*inner, y1 = cy + Math.sin(a)*inner;
+    const x2 = cx + Math.cos(a)*r, y2 = cy + Math.sin(a)*r;
+    ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${active?'#33453A':'#DDD5C3'}" stroke-width="${active?3:2}" stroke-linecap="round"/>`;
+  }
+  const pctLabel = Math.round(clamped*100);
+  svg.innerHTML = ticks + `<text x="${cx}" y="${cy+5}" text-anchor="middle" font-family="Space Mono, monospace" font-size="15" fill="#25221C">${pctLabel}%</text>`;
+}
+
+function render(){
+  const t = totals();
+  document.getElementById('kcalDone').textContent = Math.round(t.kcal);
+  document.getElementById('kcalGoal').textContent = GOALS.kcal;
+  document.getElementById('kcalRemain').textContent = Math.max(0, Math.round(GOALS.kcal - t.kcal));
+  drawDial(t.kcal / GOALS.kcal);
+
+  document.getElementById('carbsDone').textContent = round1(t.carbs);
+  document.getElementById('fatDone').textContent = round1(t.fat);
+  document.getElementById('proteinDone').textContent = round1(t.protein);
+  document.getElementById('carbsBar').style.width = Math.min(100, (t.carbs/GOALS.carbs*100)).toFixed(0)+'%';
+  document.getElementById('fatBar').style.width = Math.min(100, (t.fat/GOALS.fat*100)).toFixed(0)+'%';
+  document.getElementById('proteinBar').style.width = Math.min(100, (t.protein/GOALS.protein*100)).toFixed(0)+'%';
+
+  const iso = fmtDate(currentDate);
+  const lbl = isoToLabel(iso);
+  document.getElementById('dateLabel').firstChild.textContent = lbl.main + ' ';
+  document.getElementById('dateSub').textContent = lbl.sub;
+
+  const list = document.getElementById('entryList');
+  document.getElementById('entryCount').textContent = entries.length ? `(${entries.filter(e=>e.checked).length}/${entries.length} completadas)` : '';
+  if(entries.length===0){
+    list.innerHTML = `<div class="empty">Aun no has anadido comidas para este dia.</div>`;
+    return;
+  }
+  list.innerHTML = entries.map(e => `
+    <div class="entry ${e.checked?'done':''}" data-id="${e.id}">
+      <div class="check ${e.checked?'on':''}" data-action="toggle" role="checkbox" aria-checked="${e.checked}" tabindex="0">${e.checked?'&#10003;':''}</div>
+      <div class="entry-body">
+        <div class="entry-name">${escapeHtml(e.name)}</div>
+        <div class="entry-macros">
+          <span><b>${Math.round(e.kcal)}</b> kcal</span>
+          <span><b>${round1(e.carbs)}</b>g carbs</span>
+          <span><b>${round1(e.fat)}</b>g grasa</span>
+          <span><b>${round1(e.protein)}</b>g prot</span>
+        </div>
+      </div>
+      <button class="del" data-action="delete" aria-label="Eliminar comida">&times;</button>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(s){
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+document.getElementById('entryList').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('[data-action]');
+  if(!btn) return;
+  const row = ev.target.closest('.entry');
+  const id = row.getAttribute('data-id');
+  const entry = entries.find(e=>e.id===id);
+  if(!entry) return;
+  if(btn.dataset.action==='toggle'){
+    entry.checked = !entry.checked;
+    render();
+    persist();
+  } else if(btn.dataset.action==='delete'){
+    entries = entries.filter(e=>e.id!==id);
+    render();
+    persist();
+  }
+});
+document.getElementById('entryList').addEventListener('keydown', (ev)=>{
+  if(ev.key==='Enter' || ev.key===' '){
+    const chk = ev.target.closest('[data-action="toggle"]');
+    if(chk){ ev.preventDefault(); chk.click(); }
+  }
+});
+
+document.getElementById('addForm').addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  const name = document.getElementById('fName').value.trim();
+  const kcal = parseFloat(document.getElementById('fKcal').value);
+  const carbs = parseFloat(document.getElementById('fCarbs').value);
+  const fat = parseFloat(document.getElementById('fFat').value);
+  const protein = parseFloat(document.getElementById('fProtein').value);
+  if(!name || [kcal,carbs,fat,protein].some(n=>isNaN(n))) return;
+  entries.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+    name, kcal, carbs, fat, protein, checked:false
+  });
+  ev.target.reset();
+  document.getElementById('fName').focus();
+  render();
+  persist();
+});
+
+document.getElementById('prevDay').addEventListener('click', ()=>{
+  currentDate.setDate(currentDate.getDate()-1);
+  loadDay(fmtDate(currentDate));
+});
+document.getElementById('nextDay').addEventListener('click', ()=>{
+  currentDate.setDate(currentDate.getDate()+1);
+  loadDay(fmtDate(currentDate));
+});
+
+const FOOD_DB = {
+  carbs: [
+    {name:'Arroz blanco (cocido)', kcal:130, carbs:28, fat:0.3, protein:2.7},
+    {name:'Pasta (cocida)', kcal:131, carbs:25, fat:1.1, protein:5.8},
+    {name:'Pan blanco', kcal:265, carbs:49, fat:3.2, protein:9},
+    {name:'Avena (copos)', kcal:389, carbs:66, fat:7, protein:17},
+    {name:'Patata (cocida)', kcal:87, carbs:20, fat:0.1, protein:1.9},
+    {name:'Boniato (cocido)', kcal:90, carbs:21, fat:0.1, protein:2},
+    {name:'Quinoa (cocida)', kcal:120, carbs:21, fat:1.9, protein:4.4},
+    {name:'Platano', kcal:89, carbs:23, fat:0.3, protein:1.1}
+  ],
+  fat: [
+    {name:'Aceite de oliva', kcal:884, carbs:0, fat:100, protein:0},
+    {name:'Aguacate', kcal:160, carbs:8.5, fat:14.7, protein:2},
+    {name:'Almendras', kcal:579, carbs:22, fat:50, protein:21},
+    {name:'Nueces', kcal:654, carbs:14, fat:65, protein:15},
+    {name:'Mantequilla de cacahuete', kcal:588, carbs:20, fat:50, protein:25},
+    {name:'Yema de huevo', kcal:322, carbs:3.6, fat:27, protein:16},
+    {name:'Queso curado', kcal:400, carbs:1.3, fat:33, protein:25},
+    {name:'Semillas de chia', kcal:486, carbs:42, fat:31, protein:17}
+  ],
+  protein: [
+    {name:'Pechuga de pollo (cocida)', kcal:165, carbs:0, fat:3.6, protein:31},
+    {name:'Pechuga de pavo', kcal:135, carbs:0, fat:1, protein:30},
+    {name:'Huevo entero', kcal:155, carbs:1.1, fat:11, protein:13},
+    {name:'Clara de huevo', kcal:52, carbs:0.7, fat:0.2, protein:11},
+    {name:'Atun al natural', kcal:116, carbs:0, fat:1, protein:26},
+    {name:'Salmon', kcal:208, carbs:0, fat:13, protein:20},
+    {name:'Ternera magra', kcal:158, carbs:0, fat:6, protein:27},
+    {name:'Requeson / queso fresco', kcal:98, carbs:3.4, fat:4.3, protein:11},
+    {name:'Lentejas (cocidas)', kcal:116, carbs:20, fat:0.4, protein:9},
+    {name:'Proteina en polvo (whey)', kcal:400, carbs:8, fat:5, protein:80}
+  ]
+};
+
+const ES_FOODS = [
+  {name:'Pan blanco', tipo:'Cereal (pan)', kcal:265, carbs:49, fat:3.2, protein:9},
+  {name:'Arroz blanco (cocido)', tipo:'Cereal', kcal:130, carbs:28, fat:0.3, protein:2.7},
+  {name:'Pasta (cocida)', tipo:'Cereal', kcal:131, carbs:25, fat:1.1, protein:5.8},
+  {name:'Patata (cocida)', tipo:'Tuberculo', kcal:87, carbs:20, fat:0.1, protein:1.9},
+  {name:'Aceite de oliva', tipo:'Grasa vegetal', kcal:884, carbs:0, fat:100, protein:0},
+  {name:'Pechuga de pollo (cocida)', tipo:'Carne magra', kcal:165, carbs:0, fat:3.6, protein:31},
+  {name:'Huevo entero', tipo:'Proteina animal', kcal:155, carbs:1.1, fat:11, protein:13},
+  {name:'Jamon serrano', tipo:'Embutido curado', kcal:241, carbs:0, fat:13, protein:31},
+  {name:'Queso curado', tipo:'Lacteo', kcal:400, carbs:1.3, fat:33, protein:25},
+  {name:'Leche entera', tipo:'Lacteo', kcal:61, carbs:4.8, fat:3.3, protein:3.2},
+  {name:'Yogur natural', tipo:'Lacteo', kcal:61, carbs:4.7, fat:3.3, protein:3.5},
+  {name:'Garbanzos (cocidos)', tipo:'Legumbre', kcal:164, carbs:27, fat:2.6, protein:8.9},
+  {name:'Platano', tipo:'Fruta', kcal:89, carbs:23, fat:0.3, protein:1.1},
+  {name:'Naranja', tipo:'Fruta', kcal:47, carbs:12, fat:0.1, protein:0.9},
+  {name:'Tomate', tipo:'Hortaliza', kcal:18, carbs:3.9, fat:0.2, protein:0.9},
+  {name:'Atun en lata (aceite)', tipo:'Pescado en conserva', kcal:200, carbs:0, fat:12, protein:24}
+];
+
+function dominantMacro(f){
+  const c = { carbs: f.carbs*4, fat: f.fat*9, protein: f.protein*4 };
+  return Object.keys(c).reduce((a,b)=> c[b] > c[a] ? b : a);
+}
+
+let customFoods = { carbs: [], fat: [], protein: [] };
+
+async function loadCustomFoods(){
+  try{
+    const res = await window.storage.get('customFoods', false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      customFoods.carbs = parsed.carbs || [];
+      customFoods.fat = parsed.fat || [];
+      customFoods.protein = parsed.protein || [];
+    }
+  }catch(e){
+    customFoods = { carbs: [], fat: [], protein: [] };
+  }
+}
+
+async function saveCustomFoods(){
+  try{
+    await window.storage.set('customFoods', JSON.stringify(customFoods), false);
+  }catch(e){}
+}
+
+function mergedFoodList(cat){
+  return FOOD_DB[cat].concat(customFoods[cat]);
+}
+
+function renderFoodLists(){
+  const map = { carbs:'listCarbs', fat:'listFat', protein:'listProtein' };
+  Object.keys(FOOD_DB).forEach(key=>{
+    const el = document.getElementById(map[key]);
+    const list = mergedFoodList(key);
+    el.innerHTML = list.map((f,i)=>`
+      <div class="food-row">
+        <div class="food-name">${escapeHtml(f.name)}</div>
+        <div class="food-macros"><b>${f.kcal}</b> kcal<br>${f.carbs}C ${f.fat}G ${f.protein}P</div>
+        <button type="button" class="use-btn" data-group="${key}" data-idx="${i}">usar</button>
+      </div>
+    `).join('');
+    el.onclick = (ev)=>{
+      const btn = ev.target.closest('.use-btn');
+      if(!btn) return;
+      const food = mergedFoodList(btn.dataset.group)[Number(btn.dataset.idx)];
+      document.getElementById('fName').value = food.name + ' (100 g)';
+      document.getElementById('fKcal').value = food.kcal;
+      document.getElementById('fCarbs').value = food.carbs;
+      document.getElementById('fFat').value = food.fat;
+      document.getElementById('fProtein').value = food.protein;
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b.dataset.tab==='tracker'));
+      document.querySelectorAll('.tab-page').forEach(p=>p.classList.toggle('active', p.dataset.page==='tracker'));
+      document.getElementById('addForm').scrollIntoView({behavior:'smooth', block:'center'});
+      document.getElementById('fName').focus();
+    };
+  });
+}
+
+const MACRO_LABEL = { carbs:'Carbohidratos', fat:'Grasas', protein:'Proteina' };
+
+function inCategory(cat, name){
+  return mergedFoodList(cat).some(f=>f.name===name);
+}
+
+function renderSpainList(){
+  const el = document.getElementById('listSpain');
+  el.innerHTML = ES_FOODS.map((f,i)=>{
+    const cat = dominantMacro(f);
+    const already = inCategory(cat, f.name);
+    return `
+      <div class="food-row" style="align-items:flex-start;">
+        <div style="flex:1;min-width:0;">
+          <div class="food-name">${escapeHtml(f.name)}</div>
+          <div class="food-tipo">${escapeHtml(f.tipo)}</div>
+        </div>
+        <div class="food-macros"><b>${f.kcal}</b> kcal<br>${f.carbs}C ${f.fat}G ${f.protein}P</div>
+        <span class="badge ${cat}">${MACRO_LABEL[cat]}</span>
+        <button type="button" class="use-btn" data-idx="${i}" ${already ? 'disabled' : ''}>${already ? 'anadido' : 'anadir'}</button>
+      </div>
+    `;
+  }).join('');
+  el.onclick = async (ev)=>{
+    const btn = ev.target.closest('.use-btn');
+    if(!btn || btn.disabled) return;
+    const food = ES_FOODS[Number(btn.dataset.idx)];
+    const cat = dominantMacro(food);
+    if(inCategory(cat, food.name)) return;
+    customFoods[cat].push({ name: food.name, kcal: food.kcal, carbs: food.carbs, fat: food.fat, protein: food.protein });
+    await saveCustomFoods();
+    renderFoodLists();
+    renderSpainList();
+  };
+}
+
+document.getElementById('topTabs').addEventListener('click', (ev)=>{
+  const btn = ev.target.closest('.tab-btn');
+  if(!btn) return;
+  const tab = btn.dataset.tab;
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active', b===btn));
+  document.querySelectorAll('.tab-page').forEach(p=>p.classList.toggle('active', p.dataset.page===tab));
+});
+
+async function exportBackup(){
+  const note = document.getElementById('statusNote');
+  try{
+    const days = {};
+    const listRes = await window.storage.list('day:', false);
+    const keys = (listRes && listRes.keys) || [];
+    for(const k of keys){
+      const entry = await window.storage.get(k, false);
+      if(entry && entry.value){
+        days[k.slice(4)] = JSON.parse(entry.value);
+      }
+    }
+
+    const backup = {
+      exportedAt: new Date().toISOString(),
+      goals: GOALS,
+      days,
+      customFoods
+    };
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `registro-macros-backup-${fmtDate(new Date())}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    note.textContent = 'Backup exportado';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{ note.textContent=''; }, 2000);
+  }catch(e){
+    note.textContent = 'No se pudo exportar el backup.';
+  }
+}
+
+async function importBackup(file){
+  const note = document.getElementById('statusNote');
+  try{
+    const text = await file.text();
+    const backup = JSON.parse(text);
+    if(!backup || typeof backup !== 'object' || !backup.days){
+      note.textContent = 'El archivo no tiene el formato esperado.';
+      return;
+    }
+    const ok = confirm('Esto sustituira los datos guardados que coincidan por dia. Continuar?');
+    if(!ok) return;
+
+    for(const iso of Object.keys(backup.days)){
+      await window.storage.set(storageKey(iso), JSON.stringify(backup.days[iso]), false);
+    }
+    if(backup.customFoods){
+      customFoods.carbs = backup.customFoods.carbs || [];
+      customFoods.fat = backup.customFoods.fat || [];
+      customFoods.protein = backup.customFoods.protein || [];
+      await saveCustomFoods();
+    }
+    renderFoodLists();
+    renderSpainList();
+    await loadDay(fmtDate(currentDate));
+    note.textContent = 'Backup importado';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{ note.textContent=''; }, 2000);
+  }catch(e){
+    note.textContent = 'No se pudo leer el archivo de backup.';
+  }
+}
+
+document.getElementById('exportBtn').addEventListener('click', exportBackup);
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  document.getElementById('importFile').click();
+});
+document.getElementById('importFile').addEventListener('change', (ev)=>{
+  const file = ev.target.files[0];
+  if(file) importBackup(file);
+  ev.target.value = '';
+});
+
+(async function init(){
+  await loadCustomFoods();
+  renderFoodLists();
+  renderSpainList();
+  loadDay(fmtDate(currentDate));
+})();
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
